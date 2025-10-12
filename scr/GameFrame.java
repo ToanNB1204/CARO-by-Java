@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Stack;
-import java.awt.Point;
 
 public class GameFrame extends JFrame {
     private JPanel boardContainer;
@@ -63,15 +62,18 @@ public class GameFrame extends JFrame {
     public void undoMove() {
         if (moveHistory.isEmpty()) return;
 
-        Point last = moveHistory.pop();
-        engine.getBoard().remove(last);
+        // Undo 2 nước gần nhất (người + AI)
+        for (int i = 0; i < 2 && !moveHistory.isEmpty(); i++) {
+            Point last = moveHistory.pop();
+            engine.getBoard().remove(last);         // Xóa nước đi khỏi GameEngine
+            ai.setCell(last.y, last.x, 0);         // Đồng bộ AI
+            engine.switchTurn();                    // Đổi lượt về người chơi
+        }
 
-        // Đồng bộ AI
-        ai.setCell(last.y, last.x, 0);
-
-        engine.switchTurn();
+        // Xóa highlight nước đi cuối và vẽ lại bàn cờ
         boardPanel.repaint();
     }
+
 
     public void restartGame() {
         startGame();

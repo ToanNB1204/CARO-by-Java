@@ -4,12 +4,32 @@ import java.awt.Point;
 import java.util.*;
 
 public class GameEngine {
+
+
     public enum Cell { X,O }
 
     private Map<Point, Cell> board = new HashMap<>();
     private Player currentPlayer;
     private Player player1, player2;
     private Point lastPlayerMove = null; // Nước đi cuối của người chơi
+    private Cell playerSympol = Cell.X;
+    private Cell aiSympol = Cell.O;
+
+    public void setPlayerSymbol(Cell c){
+        this.playerSympol = c;
+    }
+
+    public void setAISymbol(Cell c){
+        this.aiSympol = c;
+    }
+
+    public Cell getPlayerSympol(){
+        return playerSympol;
+    }
+
+    public Cell getAISymbol(){
+        return aiSympol;
+    }
 
     public GameEngine(Player p1, Player p2){
         player1 = p1;
@@ -21,12 +41,12 @@ public class GameEngine {
     public Player getCurrentPlayer(){ return currentPlayer; }
     public Point getLastMoveOfPlayer(){ return lastPlayerMove; }
 
-    public boolean makeMove(Point p){
-        if(board.containsKey(p)) return false;
-        board.put(p, currentPlayer.getSymbol().equals("X") ? Cell.X : Cell.O);
-        if(!currentPlayer.isAI()) lastPlayerMove = p;
+    public boolean makeMove(Point p, Cell symbol) {
+        if (board.containsKey(p)) return false;
+        board.put(p, symbol);
         return true;
     }
+
 
     public void switchTurn(){
         currentPlayer = (currentPlayer==player1? player2: player1);

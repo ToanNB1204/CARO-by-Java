@@ -14,6 +14,9 @@ public class GameFrame extends JFrame {
     private AI ai;
     private final int BOARD_SIZE = 50;
 
+    private GameEngine.Cell playerSymbol = GameEngine.Cell.X;
+    private GameEngine.Cell aiSymbol = GameEngine.Cell.O;
+
     public GameFrame() {
         setTitle("Cờ Caro");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -31,17 +34,18 @@ public class GameFrame extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
 
+        choosePlayerSymbol();
         startGame();
     }
 
     public void startGame() {
-        Player human = new Player("Người X", "X", false);
-        Player computer = new Player("Máy O", "O", true);
+        Player human = new Player("Người " + playerSymbol, playerSymbol.toString(), false);
+        Player computer = new Player("Máy " + aiSymbol, aiSymbol.toString(), true);
 
-        // AI đồng bộ với board
         ai = new AI(BOARD_SIZE, 5);
-
         engine = new GameEngine(human, computer);
+        engine.setPlayerSymbol(playerSymbol);
+        engine.setAISymbol(aiSymbol);
 
         boardPanel = new BoardPanel(engine, ai) {
             @Override
@@ -57,7 +61,15 @@ public class GameFrame extends JFrame {
         boardContainer.revalidate();
         boardContainer.repaint();
         boardPanel.requestFocusInWindow();
+
+        // Nếu người chọn O thì AI đi trước
+        if (playerSymbol == GameEngine.Cell.O) {
+            Point aiMove = ai.getBestMove(engine.getBoard(), aiSymbol);
+            engine.makeMove(aiMove, aiSymbol);
+            boardPanel.repaint();
+        }
     }
+
 
     public void undoMove() {
         if (moveHistory.isEmpty()) return;
@@ -74,6 +86,27 @@ public class GameFrame extends JFrame {
         boardPanel.repaint();
     }
 
+    private void choosePlayerSymbol() {
+        String[] options = {"X", "O"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Choose your symbol:",
+                "Player Choice",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        if (choice == 0) {
+            playerSymbol = GameEngine.Cell.X;
+            aiSymbol = GameEngine.Cell.O;
+        } else {
+            playerSymbol = GameEngine.Cell.O;
+            aiSymbol = GameEngine.Cell.X;
+        }
+    }
 
     public void restartGame() {
         startGame();

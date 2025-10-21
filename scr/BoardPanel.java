@@ -59,12 +59,14 @@ public class BoardPanel extends JPanel {
         int row = mouseY / cellSize + offsetY;
         Point p = new Point(col, row);
 
-        if (engine.makeMove(p)) {
+        GameEngine.Cell playerSymbol = engine.getPlayerSympol();
+
+        if (engine.makeMove(p, playerSymbol)) {
             lastMove = p;
             ((GameFrame) SwingUtilities.getWindowAncestor(this)).recordMove(p);
 
-            // Đồng bộ AI
-            ai.setCell(row, col, 1); // Người là 1
+            // Đồng bộ AI (người là 1, máy là -1)
+            ai.setCell(row, col, playerSymbol == GameEngine.Cell.X ? 1 : -1);
             repaint();
 
             if (engine.checkWin(p)) {
@@ -78,11 +80,11 @@ public class BoardPanel extends JPanel {
             // Lượt máy
             if (engine.getCurrentPlayer().isAI() && ai != null) {
                 Timer timer = new Timer(300, ev -> {
-                    int[] best = ai.getBestMove();
+                    Point best = ai.getBestMove(engine.getBoard(), engine.getAISymbol());
                     if (best != null) {
-                        Point aiMove = new Point(best[1], best[0]); // [x,y]
-                        engine.makeMove(aiMove);
-                        ai.setCell(best[0], best[1], -1); // Máy là -1
+                        Point aiMove = new Point(best.x, best.y);
+                        engine.makeMove(aiMove, engine.getAISymbol());
+                        ai.setCell(best.y, best.x, engine.getAISymbol() == GameEngine.Cell.X ? 1 : -1);
                         lastMove = aiMove;
                         ((GameFrame) SwingUtilities.getWindowAncestor(this)).recordMove(aiMove);
                         repaint();
@@ -100,6 +102,7 @@ public class BoardPanel extends JPanel {
             }
         }
     }
+
 
     private void animateWin() {
         Timer timer = new Timer(300, null);

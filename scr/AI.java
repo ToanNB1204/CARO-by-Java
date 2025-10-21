@@ -1,8 +1,7 @@
 package scr;
 
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class AI {
     private int Size;
@@ -19,37 +18,36 @@ public class AI {
         board[i][j] = val;
     }
 
-    // Kiểm tra có quân lân cận
     private boolean hasNeighbors(int i, int j) {
         for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
                 if (dx != 0 || dy != 0) {
                     int ni = i + dx, nj = j + dy;
-                    if (ni >= 0 && nj >= 0 && ni < Size && nj < Size && board[ni][nj] != 0) return true;
+                    if (ni >= 0 && nj >= 0 && ni < Size && nj < Size && board[ni][nj] != 0)
+                        return true;
                 }
         return false;
     }
 
-    // Tính điểm cho một ô trống
     private int evaluateCell(int i, int j) {
-        if (board[i][j] != 0) return -1; // không phải ô trống
-        if (!hasNeighbors(i, j)) return -1; // quá xa không cần xét
+        if (board[i][j] != 0) return -1;
+        if (!hasNeighbors(i, j)) return -1;
 
         int score = 0;
         int[][] dirs = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
 
         for (int[] d : dirs) {
-            int aCount = countInDirection(i, j, d[0], d[1], -1) + countInDirection(i, j, -d[0], -d[1], -1) + 1; // AI
-            int uCount = countInDirection(i, j, d[0], d[1], 1) + countInDirection(i, j, -d[0], -d[1], 1) + 1; // Người
+            int aCount = countInDirection(i, j, d[0], d[1], -1)
+                    + countInDirection(i, j, -d[0], -d[1], -1) + 1;
+            int uCount = countInDirection(i, j, d[0], d[1], 1)
+                    + countInDirection(i, j, -d[0], -d[1], 1) + 1;
 
-            // Điểm tấn công
-            if (aCount >= countToWin) return 100000; // thắng ngay
+            if (aCount >= countToWin) return 100000;
             if (aCount == 4) score += 10000;
             else if (aCount == 3) score += 1000;
             else if (aCount == 2) score += 100;
 
-            // Điểm phòng thủ
-            if (uCount >= countToWin) return 90000; // chặn ngay
+            if (uCount >= countToWin) return 90000;
             if (uCount == 4) score += 9000;
             else if (uCount == 3) score += 900;
             else if (uCount == 2) score += 90;
@@ -57,7 +55,6 @@ public class AI {
         return score;
     }
 
-    // Đếm số quân liên tiếp theo hướng dx,dy
     private int countInDirection(int x, int y, int dx, int dy, int player) {
         int count = 0;
         int nx = x + dx, ny = y + dy;
@@ -69,22 +66,24 @@ public class AI {
         return count;
     }
 
-    // Lấy nước đi tốt nhất
-    public int[] getBestMove() {
+    public Point getBestMove(Map<Point, GameEngine.Cell> boardMap, GameEngine.Cell aiSymbol) {
         int maxScore = -1;
         Point bestMove = null;
+
         for (int i = 0; i < Size; i++) {
             for (int j = 0; j < Size; j++) {
                 int score = evaluateCell(i, j);
                 if (score > maxScore) {
                     maxScore = score;
-                    bestMove = new Point(i, j);
+                    bestMove = new Point(j, i); // X = cột, Y = hàng
                 }
             }
         }
 
-        if (bestMove == null) return new int[]{Size / 2, Size / 2}; // fallback
-        return new int[]{bestMove.x, bestMove.y};
+        if (bestMove == null) {
+            return new Point(Size / 2, Size / 2);
+        }
+        return bestMove;
     }
 
     public void printBoard() {
